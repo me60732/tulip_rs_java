@@ -1,0 +1,7 @@
+# out/, classes, generated logs
+out/
+*.class
+build.log
+javac.log
+run.log
+*.log
