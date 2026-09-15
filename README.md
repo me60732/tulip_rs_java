@@ -55,6 +55,12 @@ try (SimdResult sim = Adx.simdByAssets(assets, options, null)) { ... }
 try (SimdResult sim = Adx.simdByOptions(inputs, new double[][] {{3}, {5}, {7}, {10}}, null)) { ... }
 ```
 
+**Exception — candlestick:** pattern detection has no SIMD variants, emits
+CSR-packed pattern ids instead of f64 rows (`CandleResult.patterns(bar)` /
+`.names(bar)`), and takes a forecast filter
+(`CandlePattern.FORECAST_*`) instead of optional-output flags. See
+`examples/CandlestickExample.java`.
+
 ## Memory model
 
 Outputs and states are Rust-allocated. Per the repo-root
