@@ -5,4 +5,5 @@ build.log
 javac.log
 run.log
 *.log
-.runall.sh
+.*.sh
+nohup.out
