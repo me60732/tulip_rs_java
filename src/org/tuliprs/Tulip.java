@@ -43,8 +43,8 @@ public final class Tulip {
 
     static final Linker LINKER = Linker.nativeLinker();
     static final Arena GLOBAL_ARENA = Arena.global();
-    static final SymbolLookup LOOKUP =
-            SymbolLookup.libraryLookup(resolveLibraryPath(), GLOBAL_ARENA);
+    static final Path LIBRARY_PATH = resolveLibraryPath();
+    static final SymbolLookup LOOKUP = SymbolLookup.libraryLookup(LIBRARY_PATH, GLOBAL_ARENA);
 
     // ---- struct layouts (FFM inserts the padding the C ABI needs) ---------
 
@@ -162,7 +162,8 @@ public final class Tulip {
 
     static MethodHandle downcall(String symbol, FunctionDescriptor desc) {
         MemorySegment addr = LOOKUP.find(symbol).orElseThrow(
-                () -> new UnsatisfiedLinkError("tulip_rs_ffi: symbol not found: " + symbol));
+                () -> new UnsatisfiedLinkError("tulip_rs_ffi: symbol not found: " + symbol
+                        + " in " + LIBRARY_PATH));
         return LINKER.downcallHandle(addr, desc);
     }
 
