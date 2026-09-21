@@ -19,7 +19,7 @@ public final class BenchMacd implements BenchProvider {
     @Override
     public Benchmark def() {
         return Benchmark.builder("macd")
-                .options(new double[][]{{5.0, 13.0}, {19.0, 39.0}, {10.0, 30.0}, {6.0, 20.0}}) // matches Go/Python (first two opts)
+                .options(new double[][]{{5.0, 13.0, 8.0}, {19.0, 39.0, 9.0}, {10.0, 30.0, 10.0}, {6.0, 20.0, 9.0}}) // matches Go/Python
                 .tulip((s, o) -> {
                     Outcome oc = Macd.indicator(new double[][]{s.close}, o);
                     try (Result res = oc.result(); State st = oc.state()) {

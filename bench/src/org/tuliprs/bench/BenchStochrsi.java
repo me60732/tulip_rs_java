@@ -37,21 +37,19 @@ public final class BenchStochrsi implements BenchProvider {
                         assets[i] = new double[][]{stocks[i].close};
                     }
                     try (SimdResult sim = Stochrsi.simdByAssets(assets, o)) {
-                        if (sim.rowLength(0, 0) > 0) {
-                            Harness.consume(sim.get(0, 0, 0));
-                        }
-                        if (sim.rowLength(1, 0) > 0) {
-                            Harness.consume(sim.get(0, 1, 0));
+                        for (int out = 0; out < sim.numOutputs(); out++) {
+                            if (sim.rowLength(0, out) > 0) {
+                                Harness.consume(sim.get(0, out, 0));
+                            }
                         }
                     }
                 })
                 .simdOptions((s, optSets) -> {
                     try (SimdResult sim = Stochrsi.simdByOptions(new double[][]{s.close}, optSets)) {
-                        if (sim.rowLength(0, 0) > 0) {
-                            Harness.consume(sim.get(0, 0, 0));
-                        }
-                        if (sim.rowLength(1, 0) > 0) {
-                            Harness.consume(sim.get(0, 1, 0));
+                        for (int out = 0; out < sim.numOutputs(); out++) {
+                            if (sim.rowLength(0, out) > 0) {
+                                Harness.consume(sim.get(0, out, 0));
+                            }
                         }
                     }
                 })

@@ -2,7 +2,6 @@ package org.tuliprs.bench;
 
 import org.ta4j.core.indicators.averages.VWMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.indicators.helpers.VolumeIndicator;
 import org.tuliprs.Outcome;
 import org.tuliprs.Result;
 import org.tuliprs.SimdResult;
@@ -30,8 +29,7 @@ public final class BenchVwma implements BenchProvider {
                     }
                 })
                 .ta4j((s, o) -> Harness.consume(Ta4j.runFull(
-                        new VWMAIndicator(new ClosePriceIndicator(Ta4j.series(s)),
-                                new VolumeIndicator(Ta4j.series(s)), (int) o[0], null))))
+                        new VWMAIndicator(new ClosePriceIndicator(Ta4j.series(s)), (int) o[0]))))
                 .simdAssets((stocks, o) -> {
                     double[][][] assets = new double[stocks.length][][];
                     for (int i = 0; i < stocks.length; i++) {
