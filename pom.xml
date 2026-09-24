@@ -118,4 +118,39 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <!-- Signing profile used only at release time (mvn deploy -Prelease).
+         CI supplies the passphrase via ~/.m2/settings.xml server
+         "gpg.passphrase" (from the GPG_PASSPHRASE repo secret); the public key
+         899BB7F516638DD6 must be registered on keys.openpgp.org so Central can
+         verify the detached signatures. -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.7</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals><goal>sign</goal></goals>
+                <configuration>
+                  <keyname>287D9C78DB2F314848ACFECA899BB7F516638DD6</keyname>
+                  <passphraseServerId>gpg.passphrase</passphraseServerId>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

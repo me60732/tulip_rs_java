@@ -1,7 +1,10 @@
-# Release: publish to Maven Central via GitHub Actions trusted publishing (OIDC).
-# No stored secrets: the central-publishing plugin exchanges this runner's OIDC
-# token for an upload token, and the namespace's "trusted publishing" rule on
-# the Central Portal authorizes exactly this repo + workflow + tag pattern.
+# Release: publish to Maven Central with the classic token + GPG flow.
+# One-time secrets configured in repo Settings → Secrets and variables → Actions:
+#   CENTRAL_USERNAME / CENTRAL_PASSWORD  (the Central Portal token pair)
+#   GPG_PRIVATE_KEY                      (armored `gpg --export-secret-keys` output)
+#   GPG_PASSPHRASE                       (the key's passphrase)
+# The public half must be uploaded to keys.openpgp.org so Central can verify
+# the signatures (see README "Releasing").
 #
 # Cut a release:
 #   1. bump <version> in pom.xml (must equal the tag without the leading "v")
@@ -15,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write        # OIDC — the trusted-publishing ingredient
 
 jobs:
   release:
@@ -45,5 +47,29 @@ jobs:
       - name: Integration test (all examples)
         run: sh test.sh
 
-      - name: Build, check jars (sources + javadoc), deploy to Maven Central
-        run: mvn -B -ntp deploy
+      - name: Configure Central token + GPG passphrase
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          mkdir -p "$HOME/.m2"
+          cat > "$HOME/.m2/settings.xml" <<XML
+          <settings><servers>
+            <server><id>central</id>
+              <username>$CENTRAL_USERNAME</username>
+              <password>$CENTRAL_PASSWORD</password>
+            </server>
+            <server><id>gpg.passphrase</id>
+              <passphrase>$GPG_PASSPHRASE</passphrase>
+            </server>
+          </servers></settings>
+          XML
+
+      - name: Import signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+      - name: Sign + deploy to Maven Central
+        run: mvn -B -ntp deploy -Prelease

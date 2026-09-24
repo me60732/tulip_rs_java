@@ -64,8 +64,39 @@ try (SimdResult sim = Adx.simdByOptions(inputs, new double[][] {{3}, {5}, {7}, {
 **Exception — candlestick:** pattern detection has no SIMD variants, emits
 CSR-packed pattern ids instead of f64 rows (`CandleResult.patterns(bar)` /
 `.names(bar)`), and takes a forecast filter
-(`CandlePattern.FORECAST_*`) instead of optional-output flags. See
+(`CandlePattern.FORECAST_NONE` and friends) instead of optional-output flags. See
 `examples/org/tuliprs/examples/CandlestickExample.java`.
+
+## Releasing (Maven Central)
+
+One-time setup (already done unless noted):
+
+- Signing key `287D9C78DB2F314848ACFECA899BB7F516638DD6` (uid
+  `me60732@gmail.com`) uploaded to `keys.openpgp.org` and
+  `keyserver.ubuntu.com`; click the verification email from
+  keys.openpgp.org once.
+- Central Portal namespace `io.github.me60732` verified (GitHub login).
+- Repo secrets (Settings → Secrets and variables → Actions):
+  - `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` — the Portal *Create Token* pair
+  - `GPG_PRIVATE_KEY` — output of
+    `gpg --armor --export-secret-keys 287D9C78DB2F314848ACFECA899BB7F516638DD6`
+    (asks for the key passphrase; paste the whole `-----BEGIN PGP PRIVATE
+    KEY BLOCK-----…END…` text)
+  - `GPG_PASSPHRASE` — that same passphrase
+
+Cut a release:
+
+```sh
+# 1. bump <version> in pom.xml, commit it
+# 2. tag + push — the release workflow then runs the 95-example integration
+#    suite, signs all artifacts, deploys to Central, and auto-publishes
+#    once Central's validation finishes (~10-20 min).
+git tag v0.2.9 && git push origin main --tags
+```
+
+Manual one-off from this machine instead: `mvn deploy -Prelease` with the
+Portal token + `gpg.passphrase` present in `~/.m2/settings.xml` (servers
+`central` and `gpg.passphrase`).
 
 ## Memory model
 
