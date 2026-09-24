@@ -11,6 +11,9 @@ final class DB {
 
     static Connection open(String url) throws Exception {
         if (url.startsWith("jdbc:")) {
+            if (!url.contains("connectTimeout")) {
+                url = url + (url.contains("?") ? "&" : "?") + "connectTimeout=5";
+            }
             return DriverManager.getConnection(url);
         }
         // postgres://user:pass@host:port/db?params → split creds into properties
@@ -27,6 +30,9 @@ final class DB {
             } else {
                 props.setProperty("user", creds);
             }
+        }
+        if (!url.contains("connectTimeout")) {
+            props.setProperty("connectTimeout", "5");
         }
         return DriverManager.getConnection("jdbc:postgresql://" + rest, props);
     }

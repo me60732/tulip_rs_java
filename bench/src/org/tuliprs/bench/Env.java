@@ -50,13 +50,16 @@ public final class Env {
                     || (val.charAt(0) == '\'' && val.endsWith("'")))) {
                 val = val.substring(1, val.length() - 1);
             }
-            if (System.getProperty(key) == null) {
+            if (System.getenv(key) == null && System.getProperty(key) == null) {
                 System.setProperty(key, val);
             }
         }
     }
 
-    /** Env var or system property (.env) lookup. */
+    /**
+     * Env var, then system property (from .env), then default. Real
+     * environment wins over .env values (python-dotenv semantics).
+     */
     public static String envOr(String name, String def) {
         String v = System.getenv(name);
         if (v == null || v.isEmpty()) {

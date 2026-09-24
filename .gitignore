@@ -6,4 +6,5 @@ javac.log
 run.log
 *.log
 .*.sh
+.env
 nohup.out

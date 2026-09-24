@@ -39,15 +39,33 @@ bench/src/org/tuliprs/bench/
 cd tulip_rs_java
 ./build.sh                 # indicator classes (../out)
 cd bench && ./build.sh     # bench classes (bench/out)
+cp .env.example .env       # then edit .env for your hosts
 
-# smoke (no DB writes, quick):
+# smoke (console only, quick):
 BENCH_ONLY=ema BENCH_REPEAT=3 BENCH_WARMUP=1 ./run.sh
 
-# full suite with DB logging (uses .env or the built-in defaults):
-BENCHMARK_LOG_TO_DB=1 ./run.sh
+# full suite (writes results to the DB per .env):
+./run.sh
 ```
 
-`BENCH_ONLY="bbands,ema"` subsets; `BENCH_NUMBER/REPEAT/WARMUP` tune timing.
+### Configuration
+
+`run.sh` loads `bench/.env` first (also found when run from `tulip_rs_java/`
+or the repo root). Real environment variables always win over `.env`.
+
+| Key | Meaning (default) |
+|---|---|
+| `STOCKS_DATABASE_URL` | OHLCV source (`postgres://…/stocks`); `DATABASE_URL` also accepted |
+| `BENCHMARK_DATABASE_URL` | result DB (`postgres://…/indicator_benchmark`) |
+| `BENCHMARK_LOG_TO_DB` | `1` = write runs/results, `0` = console only (`0`) |
+| `BENCH_NUMBER` | timed calls per sample (`10`) |
+| `BENCH_REPEAT` | samples per measurement (`30`) |
+| `BENCH_WARMUP` | untimed warm-up calls (`10`) |
+| `BENCH_ONLY` | comma-separated subset, e.g. `bbands,ema` (empty = all 95) |
+
+URLs accept both `postgres://user:pass@host/db` and `jdbc:postgresql://…`
+form (credentials are parsed out automatically; a 5 s `connectTimeout` is
+applied when the URL omits one).
 
 ## Adding an indicator bench
 
@@ -57,3 +75,9 @@ BENCHMARK_LOG_TO_DB=1 ./run.sh
    when no param-compatible indicator exists. Never register a closure that
    does less work than the real computation.
 4. SIMD closures only where the facade has them.
+5. Smoke your subset: `BENCH_ONLY=<names> BENCH_REPEAT=2 ./run.sh > v.log 2>&1`
+   and require `grep "\[warn\]" v.log` to be empty — closure failures are
+   otherwise swallowed silently.
+6. Coverage guard (every facade needs a bench, prints nothing when complete):
+   `ls ../src/org/tuliprs/indicators/*.java | sed 's|.*/||;s|\.java||' | while
+   read b; do [ -f src/org/tuliprs/bench/Bench$b.java ] || echo "missing: $b"; done`

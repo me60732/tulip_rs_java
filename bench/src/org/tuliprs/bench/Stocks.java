@@ -1,7 +1,6 @@
 package org.tuliprs.bench;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
@@ -21,8 +20,9 @@ public final class Stocks {
     private Stocks() {}
 
     public static List<Stock> load() throws Exception {
-        String dbUrl = Env.envOr("DATABASE_URL",
-                "jdbc:postgresql://192.168.50.10:5433/stocks?sslmode=disable&user=tulip&password=tulip");
+        String dbUrl = Env.envOr("STOCKS_DATABASE_URL",
+                Env.envOr("DATABASE_URL",
+                        "postgres://tulip:tulip@192.168.50.10:5433/stocks?sslmode=disable"));
 
         String query = """
             SELECT e.open, e.high, e.low, e.close, e.volume
@@ -36,7 +36,7 @@ public final class Stocks {
             """;
 
         List<Stock> out = new ArrayList<>();
-        try (Connection c = DriverManager.getConnection(dbUrl)) {
+        try (Connection c = DB.open(dbUrl)) {
             for (String[] s : STOCKS) {
                 try (PreparedStatement ps = c.prepareStatement(query)) {
                     ps.setString(1, s[0]);
