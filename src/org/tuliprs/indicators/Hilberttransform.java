@@ -63,7 +63,7 @@ public final class Hilberttransform {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[][], double[])} plus optional outputs (roofing, highpass). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (roofing, highpass). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }

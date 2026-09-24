@@ -60,7 +60,7 @@ public final class Supersmoother {
         return NATIVE.simdByOptions(inputs, optionSets, null);
     }
 
-    /** As {@link #simdByOptions(double[], double[][])} plus optional outputs. */
+    /** As {@link #simdByOptions(double[][], double[][])} plus optional outputs. */
     public static SimdResult simdByOptions(double[][] inputs, double[][] optionSets, boolean[] optionalOutputs) {
         return NATIVE.simdByOptions(inputs, optionSets, optionalOutputs);
     }

@@ -51,7 +51,7 @@ public final class Adx {
     }
 
     /**
-     * As {@link #indicator(double[], double[])} but also computing optional
+     * As {@link #indicator(double[][], double[])} but also computing optional
      * outputs in fixed order: dx, atr, tr.
      */
     public static Outcome indicator(double[][] inputs, double[] options, boolean[] optionalOutputs) {
@@ -63,7 +63,7 @@ public final class Adx {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[], double[])} plus optional outputs (dx, atr, tr). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (dx, atr, tr). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }
@@ -73,7 +73,7 @@ public final class Adx {
         return NATIVE.simdByOptions(inputs, optionSets, null);
     }
 
-    /** As {@link #simdByOptions(double[], double[][])} plus optional outputs. */
+    /** As {@link #simdByOptions(double[][], double[][])} plus optional outputs. */
     public static SimdResult simdByOptions(double[][] inputs, double[][] optionSets, boolean[] optionalOutputs) {
         return NATIVE.simdByOptions(inputs, optionSets, optionalOutputs);
     }

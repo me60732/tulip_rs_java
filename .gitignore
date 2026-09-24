@@ -1,6 +1,7 @@
 # out/, classes, generated logs
 out/
 out-examples/
+target/
 dist/
 *.class
 *.log

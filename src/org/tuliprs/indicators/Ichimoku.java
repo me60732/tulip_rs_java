@@ -63,7 +63,7 @@ public final class Ichimoku {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[][], double[])} plus optional outputs (lagging_span). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (lagging_span). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }

@@ -51,7 +51,7 @@ public final class Linreg {
     }
 
     /**
-     * As {@link #indicator(double[], double[])} but also computing optional
+     * As {@link #indicator(double[][], double[])} but also computing optional
      * outputs in fixed order: linregslope, linregintercept.
      *
      * <p>Note: the core computes linreg along a different path when optional
@@ -69,7 +69,7 @@ public final class Linreg {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[], double[])} plus optional outputs (linregslope, linregintercept). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (linregslope, linregintercept). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }
@@ -79,7 +79,7 @@ public final class Linreg {
         return NATIVE.simdByOptions(inputs, optionSets, null);
     }
 
-    /** As {@link #simdByOptions(double[], double[][])} plus optional outputs (linregslope, linregintercept). */
+    /** As {@link #simdByOptions(double[][], double[][])} plus optional outputs (linregslope, linregintercept). */
     public static SimdResult simdByOptions(double[][] inputs, double[][] optionSets, boolean[] optionalOutputs) {
         return NATIVE.simdByOptions(inputs, optionSets, optionalOutputs);
     }

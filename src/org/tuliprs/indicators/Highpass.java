@@ -63,7 +63,7 @@ public final class Highpass {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[][], double[])} plus optional outputs (in_phase, quadrature, roofing). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (in_phase, quadrature, roofing). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }

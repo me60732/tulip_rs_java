@@ -50,7 +50,7 @@ public final class Vwap {
     }
 
     /**
-     * As {@link #indicator(double[], double[])} but also computing optional
+     * As {@link #indicator(double[][], double[])} but also computing optional
      * outputs in fixed order: typprice.
      */
     public static Outcome indicator(double[][] inputs, double[] options, boolean[] optionalOutputs) {
@@ -62,7 +62,7 @@ public final class Vwap {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[], double[])} plus optional outputs (typprice). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (typprice). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }

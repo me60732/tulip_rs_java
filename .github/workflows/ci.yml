@@ -25,6 +25,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "25"
+          cache: maven
 
       - name: Install native library (prebuilt release asset)
         run: ./bootstrap.sh --prebuilt
@@ -34,3 +35,6 @@ jobs:
 
       - name: Integration test (all examples, streaming/persistence/SIMD)
         run: sh test.sh
+
+      - name: Maven build (jar + sources + strict javadoc)
+        run: mvn -B -ntp verify

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.github.me60732</groupId>
+  <artifactId>tulip-rs-java</artifactId>
+  <version>0.2.9</version>
+  <packaging>jar</packaging>
+
+  <name>tulip-rs-java</name>
+  <description>
+    Java bindings (Panama FFM) for the TulipRS technical-indicator library:
+    95 indicators with SIMD batch modes, stateful streaming, and serialization.
+    Zero third-party dependencies — the FFM API ships with the JDK.
+  </description>
+  <url>https://github.com/me60732/tulip_rs_java</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>me60732</id>
+      <name>me60732</name>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/me60732/tulip_rs_java.git</connection>
+    <developerConnection>scm:git:git@github.com:me60732/tulip_rs_java.git</developerConnection>
+    <url>https://github.com/me60732/tulip_rs_java</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <!-- Reproducible builds: Central validates checksums; pin the timestamp.
+         Bump alongside <version> on each release. -->
+    <project.build.outputTimestamp>2026-09-24T00:00:00Z</project.build.outputTimestamp>
+    <!-- The FFM API (java.lang.foreign) is final from JDK 22. -->
+    <maven.compiler.release>22</maven.compiler.release>
+  </properties>
+
+  <build>
+    <!-- The repo layout is src/ for the library (examples/ and bench/ are
+         intentionally outside the artifact). -->
+    <sourceDirectory>src</sourceDirectory>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.1</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>org.tuliprs</Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Central requires a -sources.jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals><goal>jar-no-fork</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Central requires a -javadoc.jar; strict doclint so broken links fail the build -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.10.1</version>
+        <configuration>
+          <quiet>true</quiet>
+          <doclint>all,-missing</doclint>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals><goal>jar</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Maven Central publishing. Trusted publishing (GitHub Actions OIDC):
+           this plugin exchanges the runner's OIDC token for an upload token —
+           no server credentials in settings.xml and no GPG signing required.
+           Keep publishingServerId=central in sync with the portal namespace. -->
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+          <autoPublish>true</autoPublish>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

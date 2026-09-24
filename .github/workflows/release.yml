@@ -1,0 +1,49 @@
+# Release: publish to Maven Central via GitHub Actions trusted publishing (OIDC).
+# No stored secrets: the central-publishing plugin exchanges this runner's OIDC
+# token for an upload token, and the namespace's "trusted publishing" rule on
+# the Central Portal authorizes exactly this repo + workflow + tag pattern.
+#
+# Cut a release:
+#   1. bump <version> in pom.xml (must equal the tag without the leading "v")
+#   2. git commit && git tag v0.2.10 && git push origin main --tags
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write        # OIDC — the trusted-publishing ingredient
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Assert pom version matches tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          PV=$(mvn -q -B org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate \
+                 -Dexpression=project.version -DforceStdout)
+          TV="${GITHUB_REF_NAME#v}"
+          [ "$PV" = "$TV" ] || { echo "pom version $PV != tag $TV"; exit 1; }
+
+      # Native lib + integration canary: all examples must pass before anything
+      # is published (uses bootstrap.sh --prebuilt, same as CI).
+      - name: Install native library (prebuilt release asset)
+        run: ./bootstrap.sh --prebuilt
+
+      - name: Integration test (all examples)
+        run: sh test.sh
+
+      - name: Build, check jars (sources + javadoc), deploy to Maven Central
+        run: mvn -B -ntp deploy

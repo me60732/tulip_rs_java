@@ -50,7 +50,7 @@ public final class Tr {
     }
 
     /**
-     * As {@link #indicator(double[])} but also computing optional
+     * As {@link #indicator(double[][])} but also computing optional
      * outputs in fixed order: atr, medprice.
      */
     public static Outcome indicator(double[][] inputs, boolean[] optionalOutputs) {

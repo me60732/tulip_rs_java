@@ -54,7 +54,7 @@ public final class State implements AutoCloseable {
         return batch(inputs, null);
     }
 
-    /** As {@link #batch(double[])} but also requesting optional outputs. */
+    /** As {@link #batch(double[][], boolean[])} but also requesting optional outputs. */
     public Result batch(double[][] inputs, boolean[] optionalOutputs) {
         checkOpen();
         return indicator.batch(ptr, inputs, optionalOutputs);

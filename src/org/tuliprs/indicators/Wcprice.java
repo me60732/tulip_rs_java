@@ -55,7 +55,7 @@ public final class Wcprice {
         return NATIVE.simdByAssets(assets, options, null);
     }
 
-    /** As {@link #simdByAssets(double[], double[])} plus optional outputs (none). */
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (none). */
     public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
         return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }
