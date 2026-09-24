@@ -34,7 +34,7 @@ jobs:
       - name: Assert pom version matches tag
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          PV=$(mvn -q -B org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate \
+          PV=$(mvn -q -B -Dtulip.natives.skip=true org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate \
                  -Dexpression=project.version -DforceStdout)
           TV="${GITHUB_REF_NAME#v}"
           [ "$PV" = "$TV" ] || { echo "pom version $PV != tag $TV"; exit 1; }
@@ -55,7 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          V=$(mvn -q -B org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate \
+          V=$(mvn -q -B -Dtulip.natives.skip=true org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate \
                  -Dexpression=project.version -DforceStdout)
           mkdir -p target/natives
           for plat in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64; do
