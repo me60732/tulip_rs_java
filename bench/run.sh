@@ -17,5 +17,5 @@ if [ -z "$JAVA" ]; then
 fi
 
 exec "$JAVA" --enable-native-access=ALL-UNNAMED \
-    -cp "../out:out:lib/ta4j-core-0.19.jar:lib/commons-math3.jar:lib/gson.jar:lib/slf4j-api.jar:lib/postgresql.jar" \
+    -cp "../out:out:lib/*" \
     org.tuliprs.bench.Main

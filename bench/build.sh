@@ -17,6 +17,5 @@ fi
 
 [ -d ../out ] || { echo "run ../build.sh first (indicator classes)" >&2; exit 1; }
 
-"$JAVAC" -cp "../out:lib/ta4j-core-0.19.jar:lib/commons-math3.jar:lib/gson.jar:lib/slf4j-api.jar:lib/postgresql.jar" \
-    -d out $(find src -name '*.java')
+"$JAVAC" -cp "../out:lib/*" -d out $(find src -name '*.java')
 echo "bench build ok -> out/"
