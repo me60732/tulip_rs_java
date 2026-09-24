@@ -53,6 +53,12 @@ public final class Linreg {
     /**
      * As {@link #indicator(double[], double[])} but also computing optional
      * outputs in fixed order: linregslope, linregintercept.
+     *
+     * <p>Note: the core computes linreg along a different path when optional
+     * outputs are requested. For bit-identical streaming continuity, use the
+     * SAME {@code optionalOutputs} on {@code indicator()} and every
+     * {@link State#batch} continuation of a stream; mixing modes produces
+     * values agreeing only to ~1e-10, not bitwise.
      */
     public static Outcome indicator(double[][] inputs, double[] options, boolean[] optionalOutputs) {
         return NATIVE.indicator(inputs, options, optionalOutputs);

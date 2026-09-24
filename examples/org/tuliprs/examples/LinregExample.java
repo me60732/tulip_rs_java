@@ -55,11 +55,17 @@ public final class LinregExample {
         oc.state().close();
 
         // ---- partial + batch continuation ----------------------------------
+        // NOTE: core computes linreg along different paths depending on whether
+        // optional outputs are requested. Bit-exact continuity therefore requires
+        // the SAME optional-output flags on the partial indicator() call AND the
+        // batch() continuation as on the reference full run above (mixed modes
+        // agree only to ~1e-10).
         System.out.println("\n=== partial calculation + batch continuation ===");
         int partial = n - 50;
-        Outcome p = Linreg.indicator(slices(series, 0, partial), options, null);
+        Outcome p = Linreg.indicator(slices(series, 0, partial), options,
+                new boolean[] {true, true});
         try (Result pr = p.result(); State pst = p.state()) {
-            Result br = pst.batch(slices(series, partial, n));
+            Result br = pst.batch(slices(series, partial, n), new boolean[] {true, true});
             try (br) {
                 double[] continuedLinreg = br.toDoubleArray(0);
                 double[] tailLinreg = Arrays.copyOfRange(fullLinreg, fullLinreg.length - continuedLinreg.length,
