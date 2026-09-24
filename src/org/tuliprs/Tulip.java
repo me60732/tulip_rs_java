@@ -129,9 +129,11 @@ public final class Tulip {
 
     /**
      * Resolves the native library: {@code -Dtulip.ffi.library} /
-     * {@code TULIP_RS_FFI_LIBRARY} override first, then a search for
-     * {@code tulip_rs_ffi/target/{release,debug}} walking up from the working
-     * directory (mirrors the Go binding's cgo LDFLAGS candidates).
+     * {@code TULIP_RS_FFI_LIBRARY} override first, then a search walking up
+     * from the working directory — {@code ffi/lib} (prebuilt, installed by
+     * {@code bootstrap.sh --prebuilt}) before the sibling source build
+     * {@code tulip_rs_ffi/target/{release,debug}} — mirroring the Go
+     * binding's link order.
      */
     private static Path resolveLibraryPath() {
         String override = System.getProperty("tulip.ffi.library");
@@ -141,21 +143,23 @@ public final class Tulip {
         if (override != null) {
             return Path.of(override);
         }
-        String libName = System.mapLibraryName("tulip_rs_ffi"); // libtulip_rs_ffi.so
-        Path dir = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-        for (Path base = dir; base != null; base = base.getParent()) {
-            for (String root : new String[] {"tulip_rs_ffi", "."}) {
-                for (String profile : new String[] {"release", "debug"}) {
-                    Path p = base.resolve(root).resolve("target").resolve(profile).resolve(libName);
-                    if (Files.isRegularFile(p)) {
-                        return p;
-                    }
+        String libName = System.mapLibraryName("tulip_rs_ffi"); // e.g. libtulip_rs_ffi.so
+        for (Path base = Path.of("").toAbsolutePath(); base != null; base = base.getParent()) {
+            Path prebuilt = base.resolve("ffi").resolve("lib").resolve(libName);
+            if (Files.isRegularFile(prebuilt)) {
+                return prebuilt;
+            }
+            for (String profile : new String[] {"release", "debug"}) {
+                Path p = base.resolve("tulip_rs_ffi").resolve("target").resolve(profile).resolve(libName);
+                if (Files.isRegularFile(p)) {
+                    return p;
                 }
             }
         }
-        throw new IllegalStateException("could not locate " + libName + " near " + dir
-                + "; set -Dtulip.ffi.library=/path/to/" + libName
-                + " or TULIP_RS_FFI_LIBRARY");
+        throw new IllegalStateException("could not locate " + libName + " near "
+                + Path.of("").toAbsolutePath() + "; run ./bootstrap.sh --prebuilt or"
+                + " --source (see README), or set"
+                + " -Dtulip.ffi.library=/path/to/" + libName + " / TULIP_RS_FFI_LIBRARY");
     }
 
     // ---- downcall helpers --------------------------------------------------

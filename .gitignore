@@ -1,10 +1,11 @@
 # out/, classes, generated logs
 out/
+out-examples/
+dist/
 *.class
-build.log
-javac.log
-run.log
 *.log
 .*.sh
 .env
 nohup.out
+ffi/*
+!ffi/.gitkeep

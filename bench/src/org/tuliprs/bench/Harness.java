@@ -387,7 +387,7 @@ public final class Harness {
         DbLogger logger = null;
         if (logToDb) {
             String url = Env.envOr("BENCHMARK_DATABASE_URL",
-                    "postgres://tulip:tulip@192.168.50.10:5433/indicator_benchmark?sslmode=disable");
+                    "postgres://tulip:tulip@localhost:5432/indicator_benchmark?sslmode=disable");
             try {
                 logger = new DbLogger(url);
                 logger.startRun("Java bindings benchmarks -- tulip_rs_java, ta4j");

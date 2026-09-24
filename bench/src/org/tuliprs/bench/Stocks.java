@@ -22,7 +22,7 @@ public final class Stocks {
     public static List<Stock> load() throws Exception {
         String dbUrl = Env.envOr("STOCKS_DATABASE_URL",
                 Env.envOr("DATABASE_URL",
-                        "postgres://tulip:tulip@192.168.50.10:5433/stocks?sslmode=disable"));
+                        "postgres://tulip:tulip@localhost:5432/stocks?sslmode=disable"));
 
         String query = """
             SELECT e.open, e.high, e.low, e.close, e.volume

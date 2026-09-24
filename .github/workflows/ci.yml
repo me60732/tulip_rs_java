@@ -1,0 +1,36 @@
+# CI for the Java bindings: install the native lib via the prebuilt GitHub
+# release path (also exercises the --prebuilt bootstrap), build the library +
+# examples, then run every example as an integration test. No Rust toolchain
+# needed.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Install native library (prebuilt release asset)
+        run: ./bootstrap.sh --prebuilt
+
+      - name: Build library + examples
+        run: sh build.sh
+
+      - name: Integration test (all examples, streaming/persistence/SIMD)
+        run: sh test.sh
