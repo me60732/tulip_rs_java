@@ -37,4 +37,4 @@ jobs:
         run: sh test.sh
 
       - name: Maven build (jar + sources + strict javadoc)
-        run: mvn -B -ntp verify
+        run: mvn -B -ntp -Dtulip.natives.skip=true verify

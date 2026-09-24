@@ -47,6 +47,33 @@ jobs:
       - name: Integration test (all examples)
         run: sh test.sh
 
+      # Package the portable-baseline cdylibs from the matching tulip_rs_ffi
+      # release (version-locked: ffi tag == project version) into classifier
+      # jars the pom's ci-natives profile attaches. Windows intentionally
+      # skipped: ffi ships a .a there and FFM cannot load it.
+      - name: Package embedded native binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          V=$(mvn -q -B org.apache.maven.plugins:maven-help-plugin:3.5.1:evaluate \
+                 -Dexpression=project.version -DforceStdout)
+          mkdir -p target/natives
+          for plat in linux-amd64 linux-arm64 darwin-amd64 darwin-arm64; do
+            case "$plat" in
+              linux-*)  ext=so ;;
+              darwin-*) ext=dylib ;;
+            esac
+            gh release download "v$V" -R me60732/tulip_rs_ffi \
+               -p "tulip_rs_ffi-$plat.tar.gz" -D dl
+            mkdir -p "stage/$plat"
+            tar xzf "dl/tulip_rs_ffi-$plat.tar.gz" -C "stage/$plat"
+            mkdir -p "stage/$plat/native/$plat"
+            cp "stage/$plat/lib/libtulip_rs_ffi.$ext" "stage/$plat/native/$plat/"
+            jar --create --file "target/natives/tulip-rs-java-$V-$plat.jar" \
+                -C "stage/$plat" "native/$plat"
+          done
+          ls -la target/natives
+
       - name: Configure Central token + GPG passphrase
         env:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
@@ -72,4 +99,4 @@ jobs:
         run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
 
       - name: Sign + deploy to Maven Central
-        run: mvn -B -ntp deploy -Prelease
+        run: mvn -B -ntp -Dtulip.natives.skip=true deploy -Prelease,ci-natives

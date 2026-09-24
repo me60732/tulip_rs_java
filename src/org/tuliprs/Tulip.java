@@ -1,5 +1,8 @@
 package org.tuliprs;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.Linker;
@@ -11,6 +14,7 @@ import java.lang.invoke.MethodHandle;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -128,12 +132,16 @@ public final class Tulip {
     // ---- library discovery -------------------------------------------------
 
     /**
-     * Resolves the native library: {@code -Dtulip.ffi.library} /
-     * {@code TULIP_RS_FFI_LIBRARY} override first, then a search walking up
-     * from the working directory — {@code ffi/lib} (prebuilt, installed by
-     * {@code bootstrap.sh --prebuilt}) before the sibling source build
-     * {@code tulip_rs_ffi/target/{release,debug}} — mirroring the Go
-     * binding's link order.
+     * Resolves the native library. Search order (first hit wins):
+     * {@code -Dtulip.ffi.library} / {@code TULIP_RS_FFI_LIBRARY} override,
+     * then — walking up from the working directory — {@code ffi/lib}
+     * (prebuilt, installed by {@code bootstrap.sh --prebuilt}) and the
+     * sibling source build {@code tulip_rs_ffi/target/{release,debug}}
+     * ({@code bootstrap.sh --source}, which therefore overrides the jar
+     * baseline), and finally the native embedded in the platform classifier
+     * jar ({@code tulip-rs-java-<version>-<os>-<arch>.jar}) extracted to a
+     * temp file. Windows has no classifier artifact (FFM cannot load the
+     * static lib shipped by ffi releases) — use {@code bootstrap.sh --source}.
      */
     private static Path resolveLibraryPath() {
         String override = System.getProperty("tulip.ffi.library");
@@ -156,10 +164,77 @@ public final class Tulip {
                 }
             }
         }
+        // Last resort: the platform classifier jar embedded this JVM's native
+        // (x86-64-v3 / aarch64 baseline — portable, not CPU-tuned).
+        Path bundled = extractBundled(libName);
+        if (bundled != null) {
+            return bundled;
+        }
         throw new IllegalStateException("could not locate " + libName + " near "
-                + Path.of("").toAbsolutePath() + "; run ./bootstrap.sh --prebuilt or"
-                + " --source (see README), or set"
+                + Path.of("").toAbsolutePath() + " and none was embedded on this "
+                + "platform (" + System.getProperty("os.name") + "/"
+                + System.getProperty("os.arch") + "). Add the tulip-rs-java "
+                + "platform classifier dependency, run ./bootstrap.sh --prebuilt or"
+                + " --source (required on Windows), or set"
                 + " -Dtulip.ffi.library=/path/to/" + libName + " / TULIP_RS_FFI_LIBRARY");
+    }
+
+    /**
+     * Maps the running JVM to the embedded-native directory key used by the
+     * platform classifier jars (mirrors the ffi release asset names).
+     * Returns null for unsupported platforms (e.g. Windows).
+     */
+    private static String platformKey() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        String arch = System.getProperty("os.arch", "").toLowerCase();
+        String osKey;
+        if (os.contains("linux")) {
+            osKey = "linux";
+        } else if (os.contains("mac") || os.contains("macos") || os.contains("darwin")) {
+            osKey = "darwin";
+        } else {
+            return null;
+        }
+        String archKey = switch (arch) {
+            case "amd64", "x86_64" -> "amd64";
+            case "aarch64", "arm64" -> "arm64";
+            default -> null;
+        };
+        return archKey == null ? null : osKey + "-" + archKey;
+    }
+
+    /**
+     * Extracts {@code /native/<platform>/<libName>} from the classpath (the
+     * platform classifier jar) into a temp file and returns its path, or
+     * null when no embedded native matches this JVM.
+     *
+     * <p>deleteOnExit covers normal JVM shutdowns; SIGKILL leaks a temp file
+     * in java.io.tmpdir — harmless, cleaned by the OS eventually.
+     */
+    private static Path extractBundled(String libName) {
+        String key = platformKey();
+        if (key == null) {
+            return null;
+        }
+        String resource = "/native/" + key + "/" + libName;
+        try (InputStream in = Tulip.class.getResourceAsStream(resource)) {
+            if (in == null) {
+                return null;
+            }
+            int dot = libName.lastIndexOf('.');
+            Path tmp = Files.createTempFile("tulip_rs_ffi-", dot >= 0 ? libName.substring(dot) : ".lib");
+            try (OutputStream out = Files.newOutputStream(tmp, StandardOpenOption.TRUNCATE_EXISTING)) {
+                in.transferTo(out);
+            }
+            tmp.toFile().deleteOnExit();
+            if (!tmp.toFile().setExecutable(true, false)) {
+                // Best effort: some platforms/filesystems ignore this; loadLibrary
+                // fails with a clear error if the OS actually needs +x.
+            }
+            return tmp;
+        } catch (IOException e) {
+            throw new IllegalStateException("failed to extract bundled native " + resource, e);
+        }
     }
 
     // ---- downcall helpers --------------------------------------------------

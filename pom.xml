@@ -120,6 +120,123 @@
   </build>
 
   <profiles>
+    <!-- ==================== consumer: platform natives ====================
+         When this pom is consumed as a dependency, exactly one of these
+         profiles activates on the consumer's OS/arch and pulls the matching
+         classifier jar containing the portable-baseline cdylib (x86-64-v3 /
+         aarch64). The project's OWN builds (CI, release) pass
+         -Dtulip.natives.skip=true so they never resolve their own
+         classifiers mid-build; the published pom keeps the profiles, so
+         consumers get the native automatically. -->
+    <profile>
+      <id>native-linux-amd64</id>
+      <activation>
+        <os><family>unix</family><name>linux</name><arch>amd64</arch></os>
+        <property><name>!tulip.natives.skip</name></property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${project.artifactId}</artifactId>
+          <version>${project.version}</version>
+          <classifier>linux-amd64</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>native-linux-arm64</id>
+      <activation>
+        <os><family>unix</family><name>linux</name><arch>aarch64</arch></os>
+        <property><name>!tulip.natives.skip</name></property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${project.artifactId}</artifactId>
+          <version>${project.version}</version>
+          <classifier>linux-arm64</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>native-darwin-amd64</id>
+      <activation>
+        <os><family>mac</family><arch>x86_64</arch></os>
+        <property><name>!tulip.natives.skip</name></property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${project.artifactId}</artifactId>
+          <version>${project.version}</version>
+          <classifier>darwin-amd64</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+    <profile>
+      <id>native-darwin-arm64</id>
+      <activation>
+        <os><family>mac</family><arch>aarch64</arch></os>
+        <property><name>!tulip.natives.skip</name></property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${project.artifactId}</artifactId>
+          <version>${project.version}</version>
+          <classifier>darwin-arm64</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- Release-time only: attach the classifier jars the release workflow
+         built into target/natives/ from the matching tulip_rs_ffi release.
+         Windows intentionally absent: FFM needs a .dll the ffi releases
+         do not ship; use bootstrap.sh "source" mode there. -->
+    <profile>
+      <id>ci-natives</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.6.0</version>
+            <executions>
+              <execution>
+                <id>attach-native-classifiers</id>
+                <phase>package</phase>
+                <goals><goal>attach-artifact</goal></goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <type>jar</type><classifier>linux-amd64</classifier>
+                      <file>target/natives/${project.artifactId}-${project.version}-linux-amd64.jar</file>
+                    </artifact>
+                    <artifact>
+                      <type>jar</type><classifier>linux-arm64</classifier>
+                      <file>target/natives/${project.artifactId}-${project.version}-linux-arm64.jar</file>
+                    </artifact>
+                    <artifact>
+                      <type>jar</type><classifier>darwin-amd64</classifier>
+                      <file>target/natives/${project.artifactId}-${project.version}-darwin-amd64.jar</file>
+                    </artifact>
+                    <artifact>
+                      <type>jar</type><classifier>darwin-arm64</classifier>
+                      <file>target/natives/${project.artifactId}-${project.version}-darwin-arm64.jar</file>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <!-- Signing profile used only at release time (mvn deploy -Prelease).
          CI supplies the passphrase via ~/.m2/settings.xml server
          "gpg.passphrase" (from the GPG_PASSPHRASE repo secret); the public key
