@@ -18,15 +18,16 @@
 #
 # ffi/ is entirely GENERATED and gitignored (unlike the Go binding there are
 # no headers to sync: FFM resolves symbols at runtime, no C compilation).
-# Windows: --prebuilt has no release asset (the ffi releases ship a static
-# .a there, which FFM cannot load) — use --source.
+# Windows --prebuilt requires REF >= v0.2.10 (the first ffi release whose
+# windows asset carries the standalone DLL; older ones ship only the .a —
+# pass a newer REF or use --source there).
 #
 # REF defaults to $FFI_REF or the pinned FFI_DEFAULT_REF below.
 # =============================================================================
 set -euo pipefail
 
 REPO="me60732/tulip_rs_ffi"
-FFI_DEFAULT_REF="v0.2.9"
+FFI_DEFAULT_REF="v0.2.10"
 
 REPO_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SIBLING="$REPO_DIR/../tulip_rs_ffi"
@@ -54,8 +55,9 @@ case "$MODE" in
 
   --prebuilt)
     case "$(uname -s)" in
-      Linux)  OS=linux ;;
-      Darwin) OS=darwin ;;
+      Linux)    OS=linux ;;
+      Darwin)   OS=darwin ;;
+      MINGW*|MSYS*) OS=windows ;;   # git-bash / msys2 on Windows
       *) echo "error: no prebuilt native for $(uname -s) — use --source" >&2; exit 1 ;;
     esac
     case "$(uname -m)" in
@@ -75,8 +77,15 @@ case "$MODE" in
       exit 1
     fi
     mkdir -p "$REPO_DIR/ffi"
-    # tarball layout: ./lib/libtulip_rs_ffi.{so,dylib} (+ ./include/ we ignore)
+    # tarball layout: ./lib/libtulip_rs_ffi.{so,dylib} (+ ./include/ we ignore);
+    # the windows tarball carries libtulip_rs_ffi.a AND tulip_rs_ffi.dll.
     tar xzf "$TMP" -C "$REPO_DIR/ffi"
+    if [ "$OS" = windows ] && [ ! -f "$REPO_DIR/ffi/lib/tulip_rs_ffi.dll" ]; then
+      echo "error: $REF windows asset has no DLL (ffi ships one from v0.2.10 on)." >&2
+      echo "       pass a newer REF: ./bootstrap.sh --prebuilt v0.2.10, or use --source." >&2
+      rm -rf "$REPO_DIR/ffi/lib" "$REPO_DIR/ffi/include"
+      exit 1
+    fi
     echo "==> installed $REPO_DIR/ffi/lib (prebuilt $REF, $OS/$ARCH)"
     echo "==> verify: ./build.sh && ./run.sh AdxExample"
     ;;

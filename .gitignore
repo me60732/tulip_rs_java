@@ -10,3 +10,4 @@ dist/
 nohup.out
 ffi/*
 !ffi/.gitkeep
+docs/

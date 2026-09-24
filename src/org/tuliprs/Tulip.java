@@ -140,8 +140,9 @@ public final class Tulip {
      * ({@code bootstrap.sh --source}, which therefore overrides the jar
      * baseline), and finally the native embedded in the platform classifier
      * jar ({@code tulip-rs-java-<version>-<os>-<arch>.jar}) extracted to a
-     * temp file. Windows has no classifier artifact (FFM cannot load the
-     * static lib shipped by ffi releases) — use {@code bootstrap.sh --source}.
+     * temp file. Windows needs ffi >= 0.2.10, the first release whose
+     * classifier artifact carries the standalone DLL; older versions there
+     * fall back to {@code bootstrap.sh --source}.
      */
     private static Path resolveLibraryPath() {
         String override = System.getProperty("tulip.ffi.library");
@@ -174,15 +175,16 @@ public final class Tulip {
                 + Path.of("").toAbsolutePath() + " and none was embedded on this "
                 + "platform (" + System.getProperty("os.name") + "/"
                 + System.getProperty("os.arch") + "). Add the tulip-rs-java "
-                + "platform classifier dependency, run ./bootstrap.sh --prebuilt or"
-                + " --source (required on Windows), or set"
+                + "platform classifier dependency (Windows: needs ffi >= 0.2.10),"
+                + " run ./bootstrap.sh --prebuilt or --source, or set"
                 + " -Dtulip.ffi.library=/path/to/" + libName + " / TULIP_RS_FFI_LIBRARY");
     }
 
     /**
      * Maps the running JVM to the embedded-native directory key used by the
      * platform classifier jars (mirrors the ffi release asset names).
-     * Returns null for unsupported platforms (e.g. Windows).
+     * Returns null for unsupported platforms (e.g. windows-arm64, which has
+     * no ffi release asset).
      */
     private static String platformKey() {
         String os = System.getProperty("os.name", "").toLowerCase();
@@ -192,6 +194,8 @@ public final class Tulip {
             osKey = "linux";
         } else if (os.contains("mac") || os.contains("macos") || os.contains("darwin")) {
             osKey = "darwin";
+        } else if (os.contains("windows")) {
+            osKey = "windows";
         } else {
             return null;
         }
@@ -200,6 +204,10 @@ public final class Tulip {
             case "aarch64", "arm64" -> "arm64";
             default -> null;
         };
+        // ffi releases are x86-64 only on Windows (see release.yml matrix).
+        if ("windows".equals(osKey) && !"amd64".equals(archKey)) {
+            return null;
+        }
         return archKey == null ? null : osKey + "-" + archKey;
     }
 

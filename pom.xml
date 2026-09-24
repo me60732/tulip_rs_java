@@ -6,7 +6,7 @@
 
   <groupId>io.github.me60732</groupId>
   <artifactId>tulip-rs-java</artifactId>
-  <version>0.2.9</version>
+  <version>0.2.10</version>
   <packaging>jar</packaging>
 
   <name>tulip-rs-java</name>
@@ -192,11 +192,28 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>native-windows-amd64</id>
+      <activation>
+        <os><family>windows</family><arch>amd64</arch></os>
+        <property><name>!tulip.natives.skip</name></property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>${project.groupId}</groupId>
+          <artifactId>${project.artifactId}</artifactId>
+          <version>${project.version}</version>
+          <classifier>windows-amd64</classifier>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
 
     <!-- Release-time only: attach the classifier jars the release workflow
          built into target/natives/ from the matching tulip_rs_ffi release.
-         Windows intentionally absent: FFM needs a .dll the ffi releases
-         do not ship; use bootstrap.sh "source" mode there. -->
+         windows-amd64 ships the standalone DLL (crt-static: no mingw runtime
+         DLLs needed); ffi releases also carry a .a for the Go binding, which
+         the packaging step ignores. -->
     <profile>
       <id>ci-natives</id>
       <build>
@@ -227,6 +244,10 @@
                     <artifact>
                       <type>jar</type><classifier>darwin-arm64</classifier>
                       <file>target/natives/${project.artifactId}-${project.version}-darwin-arm64.jar</file>
+                    </artifact>
+                    <artifact>
+                      <type>jar</type><classifier>windows-amd64</classifier>
+                      <file>target/natives/${project.artifactId}-${project.version}-windows-amd64.jar</file>
                     </artifact>
                   </artifacts>
                 </configuration>
