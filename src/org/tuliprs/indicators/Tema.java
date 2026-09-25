@@ -50,9 +50,22 @@ public final class Tema {
         return NATIVE.indicator(inputs, options, null);
     }
 
+    /**
+     * As {@link #indicator(double[][], double[])} but also computing optional
+     * outputs in fixed order: dema, ema.
+     */
+    public static Outcome indicator(double[][] inputs, double[] options, boolean[] optionalOutputs) {
+        return NATIVE.indicator(inputs, options, optionalOutputs);
+    }
+
     /** N assets (2/4/8/16 lanes) through one shared option set, in one pass. */
     public static SimdResult simdByAssets(double[][][] assets, double[] options) {
         return NATIVE.simdByAssets(assets, options, null);
+    }
+
+    /** As {@link #simdByAssets(double[][][], double[])} plus optional outputs (dema, ema). */
+    public static SimdResult simdByAssets(double[][][] assets, double[] options, boolean[] optionalOutputs) {
+        return NATIVE.simdByAssets(assets, options, optionalOutputs);
     }
 
     /** One asset through N option sets (2/4/8/16 lanes) in one pass. */
